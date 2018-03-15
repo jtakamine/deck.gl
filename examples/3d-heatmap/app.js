@@ -27,7 +27,7 @@ class Root extends Component {
 
     requestCsv(DATA_URL, (error, response) => {
       if (!error) {
-        const data = response.map(d => [Number(d.lng), Number(d.lat)]);
+        const data = response.map(d => [Number(d.lng), Number(d.lat), 'something']);
         this.setState({data});
       }
     });

@@ -111,6 +111,12 @@ export default class DeckGLOverlay extends Component {
         elevationRange: [0, 3000],
         elevationScale: this.state.elevationScale,
         extruded: true,
+        getColorValue: function getColorValue(points) {
+          return points.length % 2;
+        },
+        getElevationValue: function getElevationValue(points) {
+          return points.length % 10;
+        },
         getPosition: d => d,
         lightSettings: LIGHT_SETTINGS,
         onHover: this.props.onHover,
