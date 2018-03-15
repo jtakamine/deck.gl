@@ -50,7 +50,8 @@ export default class DeckGLOverlay extends Component {
     this.startAnimationTimer = null;
     this.intervalTimer = null;
     this.state = {
-      elevationScale: elevationScale.min
+      // elevationScale: elevationScale.min
+      elevationScale: elevationScale.max
     };
 
     this._startAnimate = this._startAnimate.bind(this);
@@ -72,27 +73,27 @@ export default class DeckGLOverlay extends Component {
   }
 
   _animate() {
-    this._stopAnimate();
+    // this._stopAnimate();
 
-    // wait 1.5 secs to start animation so that all data are loaded
-    this.startAnimationTimer = window.setTimeout(this._startAnimate, 1500);
+    // // wait 1.5 secs to start animation so that all data are loaded
+    // this.startAnimationTimer = window.setTimeout(this._startAnimate, 1500);
   }
 
   _startAnimate() {
-    this.intervalTimer = window.setInterval(this._animateHeight, 20);
+    // this.intervalTimer = window.setInterval(this._animateHeight, 20);
   }
 
   _stopAnimate() {
-    window.clearTimeout(this.startAnimationTimer);
-    window.clearTimeout(this.intervalTimer);
+    // window.clearTimeout(this.startAnimationTimer);
+    // window.clearTimeout(this.intervalTimer);
   }
 
   _animateHeight() {
-    if (this.state.elevationScale === elevationScale.max) {
-      this._stopAnimate();
-    } else {
-      this.setState({elevationScale: this.state.elevationScale + 1});
-    }
+    // if (this.state.elevationScale === elevationScale.max) {
+    //   this._stopAnimate();
+    // } else {
+    //   this.setState({elevationScale: this.state.elevationScale + 1});
+    // }
   }
 
   static _parsePoint(point) {
