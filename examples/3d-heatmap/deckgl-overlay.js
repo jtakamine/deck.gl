@@ -95,6 +95,29 @@ export default class DeckGLOverlay extends Component {
     }
   }
 
+  static _parsePoint(point) {
+    return {
+      lng: point[0],
+      lat: point[1],
+      weight: point[2],
+      latency: point[3]
+    }
+  }
+
+  _getColorValue(points) {
+    var weighted = point => {
+      const p = DeckGLOverlay._parsePoint(point);
+      return p.weight * p.latency;
+    }
+
+    // mean latency for the data points in this "area"
+    return points.map(weighted).reduce((prev, next) => prev + next) / points.length;
+  }
+
+  _getElevationValue(points) {
+    return points.length % 10;
+  }
+
   render() {
     const {viewport, data, radius, coverage, upperPercentile} = this.props;
 
@@ -111,12 +134,8 @@ export default class DeckGLOverlay extends Component {
         elevationRange: [0, 3000],
         elevationScale: this.state.elevationScale,
         extruded: true,
-        getColorValue: function getColorValue(points) {
-          return points.length % 2;
-        },
-        getElevationValue: function getElevationValue(points) {
-          return points.length % 10;
-        },
+        getColorValue: this._getColorValue.bind(this),
+        getElevationValue: this._getElevationValue,
         getPosition: d => d,
         lightSettings: LIGHT_SETTINGS,
         onHover: this.props.onHover,
