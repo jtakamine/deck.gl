@@ -31,7 +31,7 @@ const elevationScale = {min: 1, max: 50};
 
 const defaultProps = {
   // radius: 1000,
-  radius: 15000,
+  radius: 17500,
   upperPercentile: 100,
   coverage: 1
 };

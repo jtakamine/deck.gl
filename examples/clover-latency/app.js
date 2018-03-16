@@ -64,7 +64,7 @@ class Root extends Component {
 
       // Skip the last batch which may not have much data
       if (dataFileId < numDataFiles - 2) {
-        window.setTimeout(() => this.loadData(dataFileId + 1), 100)
+        window.setTimeout(() => this.loadData(dataFileId + 1), 50)
       }
     });
   }
