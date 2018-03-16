@@ -31,7 +31,7 @@ const elevationScale = {min: 1, max: 50};
 
 const defaultProps = {
   // radius: 1000,
-  radius: 20000,
+  radius: 15000,
   upperPercentile: 100,
   coverage: 1
 };
@@ -43,7 +43,7 @@ export default class DeckGLOverlay extends Component {
 
   static get defaultViewport() {
     return {
-      longitude: -95.1145875,
+      longitude: -91.1145875,
       latitude: 38.4491152,
       zoom: 3.5,
       minZoom: 1,

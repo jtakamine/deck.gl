@@ -39,8 +39,7 @@ SELECT
     quantile(0.999)(time_total_session - time_in_server) AS latency_p999
 FROM {{table}}
 WHERE (status_code = 200)
-  AND NOT ((lat = 38)
-  AND (lon = -97))
+  AND NOT ((lat = 38) AND (lon = -97))
   AND NOT ((lat = 0) AND (lon = 0))
   AND timestamp >= toDateTime('{{startTime}}')
   AND timestamp < (toDateTime('{{startTime}}') + 60 * {{batchMinutes}})
@@ -52,6 +51,11 @@ INTO OUTFILE '{{outfile}}'
 FORMAT CSVWithNames;
 '''
 
+FILTER_OUTLIERS_CONDITION = '''\
+AND NOT ((lat = 42.1286) AND (lon = -88.0336))
+AND NOT ((lat = 45.3155) AND (lon = -75.837))
+'''
+
 AUTH_PAY_CONDITION = '''\
 AND (backend_name = 'authserver')
 AND is_pay
@@ -61,7 +65,7 @@ PAY_CONDITION = '''\
 AND is_pay
 '''
 
-QUERY = BASE_QUERY.format(condition=AUTH_PAY_CONDITION)
+QUERY = BASE_QUERY.format(condition=(FILTER_OUTLIERS_CONDITION + AUTH_PAY_CONDITION))
 
 
 def run():

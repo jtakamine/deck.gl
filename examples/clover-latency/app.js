@@ -58,6 +58,7 @@ class Root extends Component {
 
       if (!error) {
         const data = response.map(d => [Number(d.lng), Number(d.lat), Number(d.weight), Number(d.latency_p99)]);
+        data.push([0, 0, 2000, 0]);
         this.setState({data});
       }
 
