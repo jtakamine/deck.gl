@@ -94,7 +94,8 @@ class Root extends Component {
   }
 
   loadData(dataFileId) {
-    const url = DATA_BASE_URL + dataFiles[dataFileId];
+    const dataFile = dataFiles[dataFileId];
+    const url = DATA_BASE_URL + dataFile;
     console.log(url);
     requestCsv(url, (error, response) => {
       console.log('dataFileId ' + dataFileId);

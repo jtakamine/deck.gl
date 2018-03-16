@@ -24,7 +24,8 @@ print 'Querying data from {} to {}...'.format(START_TIME, END_TIME)
 
 BATCH_MINUTES = 15
 
-QUERY = '''\
+
+BASE_QUERY = '''\
 SELECT
     lon AS lng,
     lat,
@@ -36,21 +37,31 @@ SELECT
     quantile(0.95)(time_total_session - time_in_server) AS latency_p95,
     quantile(0.99)(time_total_session - time_in_server) AS latency_p99,
     quantile(0.999)(time_total_session - time_in_server) AS latency_p999
-FROM {table}
+FROM {{table}}
 WHERE (status_code = 200)
   AND NOT ((lat = 38)
   AND (lon = -97))
   AND NOT ((lat = 0) AND (lon = 0))
-  AND (backend_name = 'authserver')
-  AND is_pay
-  AND timestamp >= toDateTime('{startTime}')
-  AND timestamp < (toDateTime('{startTime}') + 60 * {batchMinutes})
+  AND timestamp >= toDateTime('{{startTime}}')
+  AND timestamp < (toDateTime('{{startTime}}') + 60 * {{batchMinutes}})
+  {condition}
 GROUP BY
     lon,
     lat
-INTO OUTFILE '{outfile}'
+INTO OUTFILE '{{outfile}}'
 FORMAT CSVWithNames;
 '''
+
+AUTH_PAY_CONDITION = '''\
+AND (backend_name = 'authserver')
+AND is_pay
+'''
+
+PAY_CONDITION = '''\
+AND is_pay
+'''
+
+QUERY = BASE_QUERY.format(condition=AUTH_PAY_CONDITION)
 
 
 def run():
