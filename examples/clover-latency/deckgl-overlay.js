@@ -19,11 +19,19 @@ const colorRange = [
   [254, 173, 84],
   [209, 55, 78]
 ];
+// const colorRange = [
+//   [0, 0, 0],
+//   [0, 255, 0],
+//   [0, 255, 255],
+//   [255, 255, 0],
+//   [255, 255, 0]
+// ];
 
 const elevationScale = {min: 1, max: 50};
 
 const defaultProps = {
-  radius: 1000,
+  // radius: 1000,
+  radius: 20000,
   upperPercentile: 100,
   coverage: 1
 };
@@ -35,10 +43,10 @@ export default class DeckGLOverlay extends Component {
 
   static get defaultViewport() {
     return {
-      longitude: -1.4157267858730052,
-      latitude: 52.232395363869415,
-      zoom: 6.6,
-      minZoom: 5,
+      longitude: -95.1145875,
+      latitude: 38.4491152,
+      zoom: 3.5,
+      minZoom: 1,
       maxZoom: 15,
       pitch: 40.5,
       bearing: -27.396674584323023
@@ -106,17 +114,29 @@ export default class DeckGLOverlay extends Component {
   }
 
   _getColorValue(points) {
-    var weighted = point => {
+    const weighted = point => {
       const p = DeckGLOverlay._parsePoint(point);
       return p.weight * p.latency;
     }
 
+    const total = points.map(p => DeckGLOverlay._parsePoint(p).weight).reduce((prev, next) => prev + next);
+
     // mean latency for the data points in this "area"
-    return points.map(weighted).reduce((prev, next) => prev + next) / points.length;
+    return points.map(weighted).reduce((prev, next) => prev + next) / total;
   }
 
   _getElevationValue(points) {
-    return points.length % 10;
+    return points.map(p => DeckGLOverlay._parsePoint(p).weight).reduce((prev, next) => prev + next);
+    // return points.length;
+    // const weighted = point => {
+    //   const p = DeckGLOverlay._parsePoint(point);
+    //   return p.weight * p.latency;
+    // }
+
+    // const total = points.map(p => DeckGLOverlay._parsePoint(p).weight).reduce((prev, next) => prev + next);
+
+    // // mean latency for the data points in this "area"
+    // return points.map(weighted).reduce((prev, next) => prev + next) / total;
   }
 
   render() {
@@ -132,7 +152,7 @@ export default class DeckGLOverlay extends Component {
         colorRange,
         coverage,
         data,
-        elevationRange: [0, 3000],
+        elevationRange: [0, 30000],
         elevationScale: this.state.elevationScale,
         extruded: true,
         getColorValue: this._getColorValue.bind(this),

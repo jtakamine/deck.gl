@@ -9,11 +9,38 @@ import {csv as requestCsv} from 'd3-request';
 // Set your mapbox token here
 const MAPBOX_TOKEN = process.env.MapboxAccessToken; // eslint-disable-line
 
-// Source data CSV
+/*
+SELECT
+    lon AS lng,
+    lat,
+    count(*) AS weight,
+    sum(time_total_session - time_in_server) / count(*) AS latency,
+    quantile(0.5)(time_total_session - time_in_server) AS latency_p50,
+    quantile(0.75)(time_total_session - time_in_server) AS latency_p75,
+    quantile(0.9)(time_total_session - time_in_server) AS latency_p90,
+    quantile(0.95)(time_total_session - time_in_server) AS latency_p95,
+    quantile(0.99)(time_total_session - time_in_server) AS latency_p99,
+    quantile(0.999)(time_total_session - time_in_server) AS latency_p999
+FROM haproxy_log
+WHERE (status_code = 200)
+  AND NOT ((lat = 38)
+  AND (lon = -97))
+  AND NOT ((lat = 0) AND (lon = 0))
+  AND (backend_name = 'authserver')
+  AND is_pay
+GROUP BY
+    lon,
+    lat
+INTO OUTFILE 'test_authserver.csv'
+FORMAT CSVWithNames;
+*/
 const DATA_URL_1 =
-  'http://localhost:8080/data_example_1.csv';
+  // 'http://localhost:8080/test_all.csv';
+  'http://localhost:8080/test_authserver.csv';
+
 const DATA_URL_2 =
   'http://localhost:8080/data_example_2.csv';
+
 // const DATA_URL =
 //   'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv'; // eslint-disable-line
 
@@ -36,9 +63,9 @@ class Root extends Component {
     };
 
     this.loadData(DATA_URL_1, data => {DATA_1 = data});
-    this.loadData(DATA_URL_2, data => {DATA_2 = data});
+    // this.loadData(DATA_URL_2, data => {DATA_2 = data});
 
-    window.setInterval(this.swapData.bind(this), 1000);
+    // window.setInterval(this.swapData.bind(this), 100);
   }
 
   swapData() {
@@ -48,6 +75,7 @@ class Root extends Component {
         this.setState(DATA_1)
       } else {
         data_index = 0;
+        // this.setState(DATA_1)
         this.setState(DATA_2)
       }
       console.log(data_index);
@@ -57,7 +85,7 @@ class Root extends Component {
   loadData(data_url, callback) {
     requestCsv(data_url, (error, response) => {
       if (!error) {
-        const data = response.map(d => [Number(d.lng), Number(d.lat), Number(d.weight), Number(d.latency)]);
+        const data = response.map(d => [Number(d.lng), Number(d.lat), Number(d.weight), Number(d.latency_p99)]);
         callback({data});
         this.setState({data});
       }
