@@ -1,42 +1,85 @@
 #!/usr/bin/env python
 
 import time
+import os
 from subprocess import call
+from datetime import datetime, timedelta
 
 
 HOST = 'clickhouse1.dev.clover.com'
 DATABASE = 'log'
+TABLE = 'haproxy_log2'
+
+CLICKHOUSE_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+DATE_FORMAT = '%m-%d-%y %H:%M:%S'
+
+START_TIME_STR = os.environ.get('START_TIME', '03-15-18 00:00:00')
+START_TIME = datetime.strptime(START_TIME_STR, DATE_FORMAT)
+END_TIME_STR = os.environ.get('END_TIME', '03-15-18 00:10:59')
+END_TIME = datetime.strptime(END_TIME_STR, DATE_FORMAT)
+
+SLEEP_ON_COMPLETE = int(os.environ.get('SLEEP_ON_COMPLETE', 10000000))
+
+print 'Querying data from {} to {}...'.format(START_TIME, END_TIME)
+
+BATCH_MINUTES = 15
+
 QUERY = '''\
 SELECT
-  lon,
-  lat,
-  count(*),
-  sum(time_total_session - time_in_server) / count(*) AS latency_mean,
-  quantile(.5)(time_total_session - time_in_server) AS latency_p50,
-  quantile(.75)(time_total_session - time_in_server) AS latency_p75,
-  quantile(.9)(time_total_session - time_in_server) AS latency_p90,
-  quantile(.95)(time_total_session - time_in_server) AS latency_p95,
-  quantile(.99)(time_total_session - time_in_server) AS latency_p99,
-  quantile(.999)(time_total_session - time_in_server) AS latency_p999
-FROM haproxy_log2
-WHERE timestamp > now() - (60 * {lookback_mins})
-  AND backend_name = 'authserver'
-GROUP BY client_ip, lon, lat
-INTO OUTFILE '{outfile}' FORMAT CSV
+    lon AS lng,
+    lat,
+    count(*) AS weight,
+    sum(time_total_session - time_in_server) / count(*) AS latency,
+    quantile(0.50)(time_total_session - time_in_server) AS latency_p50,
+    quantile(0.75)(time_total_session - time_in_server) AS latency_p75,
+    quantile(0.90)(time_total_session - time_in_server) AS latency_p90,
+    quantile(0.95)(time_total_session - time_in_server) AS latency_p95,
+    quantile(0.99)(time_total_session - time_in_server) AS latency_p99,
+    quantile(0.999)(time_total_session - time_in_server) AS latency_p999
+FROM {table}
+WHERE (status_code = 200)
+  AND NOT ((lat = 38)
+  AND (lon = -97))
+  AND NOT ((lat = 0) AND (lon = 0))
+  AND (backend_name = 'authserver')
+  AND is_pay
+  AND timestamp >= toDateTime('{startTime}')
+  AND timestamp < (toDateTime('{startTime}') + 60 * {batchMinutes})
+GROUP BY
+    lon,
+    lat
+INTO OUTFILE '{outfile}'
+FORMAT CSVWithNames;
 '''
 
 
 def run():
-    while True:
-        t = int(time.time())
-        print 't={}'.format(t)
-        query = QUERY.format(lookback_mins=1, outfile='test{}.csv'.format(t))
+    cur_date = START_TIME
+
+    while cur_date <= END_TIME:
+        print cur_date
+
+        cur_date += timedelta(minutes=BATCH_MINUTES)
+        unix = int(time.mktime(cur_date.timetuple()))
+        outfile = 'data/batch_{}.csv'.format(unix)
+
+        print outfile
+
+        query = QUERY.format(
+            table=TABLE,
+            startTime=datetime.strftime(cur_date, CLICKHOUSE_DATE_FORMAT),
+            outfile=outfile,
+            batchMinutes=BATCH_MINUTES)
+
+        print query
 
         call(['clickhouse-client',
               '--host', HOST,
               '--database', DATABASE,
               '--query', query])
-        time.sleep(1)
+
+    print 'Done. Sleeping for {} seconds...'.format(SLEEP_ON_COMPLETE)
+    time.sleep(SLEEP_ON_COMPLETE)
 
 
 if __name__ == '__main__':

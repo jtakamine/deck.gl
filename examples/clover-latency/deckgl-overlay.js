@@ -127,16 +127,6 @@ export default class DeckGLOverlay extends Component {
 
   _getElevationValue(points) {
     return points.map(p => DeckGLOverlay._parsePoint(p).weight).reduce((prev, next) => prev + next);
-    // return points.length;
-    // const weighted = point => {
-    //   const p = DeckGLOverlay._parsePoint(point);
-    //   return p.weight * p.latency;
-    // }
-
-    // const total = points.map(p => DeckGLOverlay._parsePoint(p).weight).reduce((prev, next) => prev + next);
-
-    // // mean latency for the data points in this "area"
-    // return points.map(weighted).reduce((prev, next) => prev + next) / total;
   }
 
   render() {
